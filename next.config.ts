@@ -18,6 +18,10 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Recommended for App Router, though turbopack is enabled via dev script
+  experimental: {
+    // appDir: true, // This is true by default in Next.js 13.4+
+  },
 };
 
 export default nextConfig;
