@@ -18,17 +18,36 @@ const step1Fields = z.object({
 });
 
 const step2Fields = z.object({
-  branche_bac: z.string().min(1, "La branche du bac est requise."),
-  niveau_academique: z.string().min(1, "Le niveau académique est requis."),
-  filiere: z.string().optional(),
-  has_prior_experience_q1: z.boolean(),
-  experience: z.string().optional(),
+    branche_bac: z.string().min(1, "La branche du bac est requise."),
+    niveau_academique: z.string().min(1, "Le niveau académique est requis."),
+    filiere: z.string().optional(),
+    has_prior_experience_q1: z.boolean(),
+    experience: z.string().optional(),
+    competences: z.array(z.string()).optional(),
 });
 
 const step3Fields = z.object({
-  motivation_level: z.string().min(1, "Le niveau de motivation est requis."),
-  is_available_q2: z.boolean(),
-  interests: z.array(z.string()).optional(),
+    motivation_level: z.string().min(1, "Le niveau de motivation est requis."),
+    is_available_q2: z.boolean(),
+    interests: z.array(z.string()).optional(),
+    langue_mat: z.string().min(1, "La langue maternelle est requise"),
+    langue_etrangere: z.array(z.string()).optional(),
+    is_currently_employed: z.boolean(),
+    job_description: z.string().optional(),
+});
+
+const step4Fields = z.object({
+    had_covid: z.boolean(),
+    how_you_know: z.string().min(1, "La source est requise."),
+    why_you: z.string().min(1, "La réponse est requise."),
+    do_you_want_us_call_you: z.boolean(),
+    phone_call_time: z.string().optional(),
+    is_ok_to_send_email: z.boolean(),
+    is_ok_to_send_sms: z.boolean(),
+});
+
+const recapchaStep = z.object({
+    recaptcha: z.string().min(1, "reCAPTCHA est requis")
 });
 
 // Combine the shapes of these ZodObjects to create a new ZodObject,
@@ -36,7 +55,9 @@ const step3Fields = z.object({
 export const formSchema = z.object({
   ...step1Fields.shape,
   ...step2Fields.shape,
-  ...step3Fields.shape,
+    ...step3Fields.shape,
+    ...step4Fields.shape,
+    ...recapchaStep.shape,
 }).superRefine((data, ctx) => {
   // Refinement logic (previously in step2Schema)
   if (data.niveau_academique && data.niveau_academique !== "Baccalauréat" && (!data.filiere || data.filiere.trim() === "")) {
@@ -66,6 +87,10 @@ export const STEPS_VALIDATION_FIELDS: (keyof FormData)[][] = [
   ['branche_bac', 'niveau_academique', 'filiere', 'has_prior_experience_q1', 'experience'],
   // Step 3 keys:
   ['motivation_level', 'is_available_q2', 'interests'],
+  // Step 4 keys
+  ['had_covid','how_you_know','why_you','do_you_want_us_call_you','phone_call_time','is_ok_to_send_email','is_ok_to_send_sms'],
+  // Recapcha step
+  ['recaptcha']
 ];
 
 // Constants for select options
@@ -146,4 +171,27 @@ export const INTEREST_ITEMS = [
   { id: "entrepreneuriat", label: "Entrepreneuriat" },
   { id: "benevolat", label: "Bénévolat" },
   { id: "voyages", label: "Voyages" },
+];
+
+export const COMPETENCES_ITEMS = [
+    { id: "developpement_web", label: "Développement Web" },
+    { id: "developpement_mobile", label: "Développement Mobile" },
+    { id: "gestion_projet", label: "Gestion de Projet" },
+    { id: "gestion_base_donnees", label: "Gestion de Base de Données" },
+    { id: "analyse_donnees", label: "Analyse de Données" },
+    { id: "intelligence_artificielle", label: "Intelligence Artificielle" },
+];
+
+export const LANGUES = [
+    { value: "Arabe", label: "Arabe" },
+    { value: "Amazigh", label: "Amazigh" },
+    { value: "Français", label: "Français" },
+    { value: "Anglais", label: "Anglais" },
+    { value: "Espagnol", label: "Espagnol" },
+    { value: "Allemand", label: "Allemand" },
+];
+
+export const HOW_YOU_KNOW_ITEMS = [
+    { value: "Réseaux sociaux", label: "Réseaux sociaux" },
+    { value: "Bouche-à-oreille", label: "Bouche-à-oreille" },
 ];
