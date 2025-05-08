@@ -1,12 +1,14 @@
+
 import { z } from 'zod';
 
 const REQUIRED_MESSAGE = "Ce champ est requis.";
 const INVALID_EMAIL_MESSAGE = "Format d'email invalide.";
 
-export const step1Schema = z.object({
+// Define field groups for clarity, these are ZodObject schemas
+const step1Fields = z.object({
   nom: z.string().min(1, "Le nom est requis."),
   prenom: z.string().min(1, "Le prénom est requis."),
-  date_naissance: z.date({ required_error: "La date de naissance est requise." }),
+  date_naissance: z.date({ required_error: "La date de naissance est requise.", invalid_type_error: "La date de naissance est requise." }),
   cin: z.string().min(1, "Le CIN est requis."),
   genre: z.string().min(1, "Le genre est requis."),
   email: z.string().email(INVALID_EMAIL_MESSAGE).min(1, REQUIRED_MESSAGE),
@@ -15,13 +17,28 @@ export const step1Schema = z.object({
   region: z.string().min(1, "La région est requise."),
 });
 
-export const step2Schema = z.object({
+const step2Fields = z.object({
   branche_bac: z.string().min(1, "La branche du bac est requise."),
   niveau_academique: z.string().min(1, "Le niveau académique est requis."),
-  filiere: z.string().optional(), // Made optional initially, refined below
+  filiere: z.string().optional(),
   has_prior_experience_q1: z.boolean(),
-  experience: z.string().optional(), // Made optional initially, refined below
+  experience: z.string().optional(),
+});
+
+const step3Fields = z.object({
+  motivation_level: z.string().min(1, "Le niveau de motivation est requis."),
+  is_available_q2: z.boolean(),
+  interests: z.array(z.string()).optional(),
+});
+
+// Combine the shapes of these ZodObjects to create a new ZodObject,
+// then apply superRefine to this single, comprehensive ZodObject.
+export const formSchema = z.object({
+  ...step1Fields.shape,
+  ...step2Fields.shape,
+  ...step3Fields.shape,
 }).superRefine((data, ctx) => {
+  // Refinement logic (previously in step2Schema)
   if (data.niveau_academique && data.niveau_academique !== "Baccalauréat" && (!data.filiere || data.filiere.trim() === "")) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -36,21 +53,18 @@ export const step2Schema = z.object({
       path: ["experience"],
     });
   }
+  // Add any other cross-step or complex refinements here if needed
 });
-
-export const step3Schema = z.object({
-  motivation_level: z.string().min(1, "Le niveau de motivation est requis."),
-  is_available_q2: z.boolean(),
-  interests: z.array(z.string()).optional(),
-});
-
-export const formSchema = step1Schema.merge(step2Schema).merge(step3Schema);
 
 export type FormData = z.infer<typeof formSchema>;
 
+// STEPS_VALIDATION_FIELDS remains the same as it refers to field names (keys of FormData)
 export const STEPS_VALIDATION_FIELDS: (keyof FormData)[][] = [
+  // Step 1 keys:
   ['nom', 'prenom', 'date_naissance', 'cin', 'genre', 'email', 'telephone', 'ville', 'region'],
+  // Step 2 keys:
   ['branche_bac', 'niveau_academique', 'filiere', 'has_prior_experience_q1', 'experience'],
+  // Step 3 keys:
   ['motivation_level', 'is_available_q2', 'interests'],
 ];
 
