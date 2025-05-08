@@ -20,7 +20,7 @@ import { FormNavigation } from '@/components/formflow/FormNavigation';
 import { SubmissionModal } from '@/components/formflow/SubmissionModal';
 
 import { formSchema, STEPS_VALIDATION_FIELDS, type FormData } from '@/lib/schemas/formSchema';
-import { ReCAPTCHA } from '@/components/ui/recaptcha';
+import { Recaptcha } from '@/components/ui/recaptcha';
 
 
 const STEP_TITLES = ["Informations Personnelles", "Parcours Académique", "Informations Complémentaires"];
@@ -153,7 +153,7 @@ export default function HomePage() {
             case 4:
                 return <div className="flex flex-col items-center justify-center space-y-4">
                   <p className="text-sm">Veuillez confirmer que vous n'êtes pas un robot.</p>
-                    <ReCAPTCHA />
+                    <Recaptcha />
                     <Button type="submit" disabled={isSubmitting}>
                       Soumettre ma candidature
                     </Button>
