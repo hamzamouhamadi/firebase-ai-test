@@ -7,7 +7,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { FormData } from '@/lib/schemas/formSchema';
-import { BAC_BRANCHES, ACADEMIC_LEVELS, EXPERIENCE_LEVELS } from '@/lib/schemas/formSchema';
+import { BAC_BRANCHES, ACADEMIC_LEVELS, EXPERIENCE_LEVELS, ACADEMIC_FIELDS } from '@/lib/schemas/formSchema';
 
 interface Step2Props {
   form: UseFormReturn<FormData>;
@@ -15,7 +15,7 @@ interface Step2Props {
 
 export function Step2AcademicInfo({ form }: Step2Props) {
   const watchAcademicLevel = form.watch("niveau_academique");
-  const watchHasPriorExperience = form.watch("has_prior_experience_q1");
+  const watchHasPriorExperience = form.watch("experience_professionnelle");
 
   return (
     <div className="space-y-6">
@@ -69,25 +69,31 @@ export function Step2AcademicInfo({ form }: Step2Props) {
         )}
       />
 
-      {watchAcademicLevel && watchAcademicLevel !== "Baccalauréat" && (
-        <FormField
-          control={form.control}
-          name="filiere"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="flex items-center"><BookOpen className="mr-2 h-4 w-4 text-primary" />Filière</FormLabel>
-              <FormControl>
-                <Input placeholder="Votre filière actuelle ou précédente" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      )}
-
+          <FormField
+            control={form.control}
+            name="filiere_academique"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center"><BookOpen className="mr-2 h-4 w-4 text-primary" />Filière académique</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionnez votre filière académique" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {ACADEMIC_FIELDS.map((field) => (
+                      <SelectItem key={field.value} value={field.value}>{field.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
       <FormField
         control={form.control}
-        name="has_prior_experience_q1"
+        name="experience_professionnelle"
         render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm bg-card">
             <div className="space-y-0.5">
@@ -96,7 +102,7 @@ export function Step2AcademicInfo({ form }: Step2Props) {
                 Avez-vous une expérience professionnelle antérieure ?
               </FormLabel>
             </div>
-            <FormControl>
+            <FormControl>      
               <Switch
                 checked={field.value}
                 onCheckedChange={field.onChange}
@@ -106,13 +112,13 @@ export function Step2AcademicInfo({ form }: Step2Props) {
         )}
       />
 
-      {watchHasPriorExperience && (
+      {watchHasPriorExperience && watchHasPriorExperience === true &&(
         <FormField
           control={form.control}
-          name="experience"
+          name="experience_mois"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="flex items-center"><Briefcase className="mr-2 h-4 w-4 text-primary" />Expérience</FormLabel>
+              <FormLabel className="flex items-center"><Briefcase className="mr-2 h-4 w-4 text-primary" />Si oui, de combien de mois ?</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>

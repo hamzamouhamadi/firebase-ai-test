@@ -18,13 +18,26 @@ const step1Fields = z.object({
 });
 
 const step2Fields = z.object({
-    branche_bac: z.string().min(1, "La branche du bac est requise."),
-    niveau_academique: z.string().min(1, "Le niveau académique est requis."),
-    filiere: z.string().optional(),
-    has_prior_experience_q1: z.boolean(),
-    experience: z.string().optional(),
-    competences: z.array(z.string()).optional(),
+  branche_bac: z.string({ required_error: "La branche du bac est requise." }).min(1, "La branche du bac est requise."),
+  niveau_academique: z.string({ required_error: "Le niveau académique est requis." }).min(1, "Le niveau académique est requis."),
+  filiere_academique: z.string({ required_error: "La filière académique est requise." }).min(1, "La filière académique est requise."),
+  has_professional_experience: z.enum(["Oui", "Non"], { required_error: "Veuillez indiquer si vous avez une expérience professionnelle." }),
+  professional_experience_duration: z.string().optional(),
 });
+
+const itSkills = [
+  "HTML/CSS", "JavaScript", "Python", "Java", "C#", "PHP", "SQL", "React", "Angular", "Node.js", "Autre"
+] as const;
+
+const step3Fields = z.object({
+  objectif: z.enum(["Trouver un emploi", "Lancer un projet personnel"], { required_error: "Veuillez sélectionner un objectif." }),
+  situation_actuelle: z.enum(["Étudiant", "En recherche d’emploi", "En emploi", "Autre"], { required_error: "Veuillez sélectionner votre situation actuelle." }),
+  has_laptop: z.enum(["Oui", "Non"], { required_error: "Veuillez indiquer si vous avez un ordinateur portable." }),
+  has_it_knowledge: z.enum(["Oui", "Non"], { required_error: "Veuillez indiquer si vous avez des connaissances en IT." }),
+  it_skills: z.array(z.enum(itSkills)).max(3, "Vous ne pouvez sélectionner que 3 compétences maximum.").optional(),
+});
+
+
 
 const step3Fields = z.object({
     motivation_level: z.string().min(1, "Le niveau de motivation est requis."),
@@ -33,18 +46,31 @@ const step3Fields = z.object({
     langue_mat: z.string().min(1, "La langue maternelle est requise"),
     langue_etrangere: z.array(z.string()).optional(),
     is_currently_employed: z.boolean(),
-    job_description: z.string().optional(),
 });
 
+
+const formations = [
+  "Frontend",
+  "Backend",
+  "Fullstack",
+  "Data Science",
+  "Machine Learning",
+  "Analyse de données",
+] as const;
+
 const step4Fields = z.object({
-    had_covid: z.boolean(),
-    how_you_know: z.string().min(1, "La source est requise."),
-    why_you: z.string().min(1, "La réponse est requise."),
-    do_you_want_us_call_you: z.boolean(),
-    phone_call_time: z.string().optional(),
-    is_ok_to_send_email: z.boolean(),
-    is_ok_to_send_sms: z.boolean(),
+  formation_souhaitee: z.enum(formations, { required_error: "Veuillez sélectionner une formation souhaitée." }),
+  how_did_you_hear_about_us: z.array(z.string()).min(1, { message: "Veuillez sélectionner au moins une option." }),
+  engagement: z.boolean({ required_error: "Vous devez accepter les termes d'engagement." })
+    .refine((value) => value === true, {
+      message: "Vous devez accepter les termes d'engagement.",
+    }),
 });
+
+const recapchaStep = z.object({
+  recaptcha: z.string().min(1, "reCAPTCHA est requis")
+});
+
 
 const recapchaStep = z.object({
     recaptcha: z.string().min(1, "reCAPTCHA est requis")
@@ -60,14 +86,21 @@ export const formSchema = z.object({
     ...recapchaStep.shape,
 }).superRefine((data, ctx) => {
   // Refinement logic (previously in step2Schema)
-  if (data.niveau_academique && data.niveau_academique !== "Baccalauréat" && (!data.filiere || data.filiere.trim() === "")) {
+  if (data.niveau_academique && data.niveau_academique !== "Bac" && (!data.filiere_academique || data.filiere_academique.trim() === "")) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: "La filière est requise pour ce niveau académique.",
-      path: ["filiere"],
+      path: ["filiere_academique"],
     });
   }
-  if (data.has_prior_experience_q1 && (!data.experience || data.experience.trim() === "")) {
+  if (data.has_professional_experience === "Oui" && (!data.professional_experience_duration || data.professional_experience_duration.trim() === "")) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "La durée d'expérience est requise si vous avez répondu oui.",
+      path: ["professional_experience_duration"],
+    });
+  }
+  if (data.has_it_knowledge === "Oui" && (!data.it_skills || data.it_skills.length === 0)) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: "L'expérience est requise si vous avez répondu oui.",
@@ -83,13 +116,12 @@ export type FormData = z.infer<typeof formSchema>;
 export const STEPS_VALIDATION_FIELDS: (keyof FormData)[][] = [
   // Step 1 keys:
   ['nom', 'prenom', 'date_naissance', 'cin', 'genre', 'email', 'telephone', 'ville', 'region'],
-  // Step 2 keys:
-  ['branche_bac', 'niveau_academique', 'filiere', 'has_prior_experience_q1', 'experience'],
-  // Step 3 keys:
-  ['motivation_level', 'is_available_q2', 'interests'],
-  // Step 4 keys
-  ['had_covid','how_you_know','why_you','do_you_want_us_call_you','phone_call_time','is_ok_to_send_email','is_ok_to_send_sms'],
-  // Recapcha step
+  ['branche_bac', 'niveau_academique', 'filiere_academique', 'has_professional_experience', 'professional_experience_duration'],
+  ['objectif', 'situation_actuelle', 'has_laptop', 'has_it_knowledge', 'it_skills'],
+  ['formation_souhaitee', 'how_did_you_hear_about_us', 'engagement'],
+
+  // Step 5: Recapcha step
+
   ['recaptcha']
 ];
 
@@ -126,43 +158,37 @@ export const REGIONS = [
 ];
 
 export const BAC_BRANCHES = [
-  { value: "Sciences Mathématiques A", label: "Sciences Mathématiques A" },
-  { value: "Sciences Mathématiques B", label: "Sciences Mathématiques B" },
-  { value: "Sciences Physiques", label: "Sciences Physiques" },
-  { value: "Sciences de la Vie et de la Terre", label: "Sciences de la Vie et de la Terre" },
-  { value: "Sciences Agronomiques", label: "Sciences Agronomiques" },
-  { value: "Sciences Économiques", label: "Sciences Économiques" },
-  { value: "Techniques de Gestion Comptable", label: "Techniques de Gestion Comptable" },
-  { value: "Lettres", label: "Lettres" },
-  { value: "Arts Appliqués", label: "Arts Appliqués" },
-  { value: "Autre", label: "Autre" },
+  { value: "Scientifique", label: "Scientifique" },
+  { value: "Littéraire", label: "Littéraire" },
+  { value: "Économique", label: "Économique" },
+  { value: "Technique", label: "Technique" },
+  { value: "Autre", label: "Autre" }
 ];
 
 export const ACADEMIC_LEVELS = [
-  { value: "Baccalauréat", label: "Baccalauréat" },
+  { value: "Bac", label: "Bac" },
   { value: "Bac+1", label: "Bac+1" },
-  { value: "Bac+2 (DEUG, DUT, BTS)", label: "Bac+2 (DEUG, DUT, BTS)" },
-  { value: "Bac+3 (Licence)", label: "Bac+3 (Licence)" },
-  { value: "Bac+4 (Maîtrise)", label: "Bac+4 (Maîtrise)" },
-  { value: "Bac+5 (Master, Ingénieur)", label: "Bac+5 (Master, Ingénieur)" },
-  { value: "Doctorat", label: "Doctorat" },
-  { value: "Autre", label: "Autre" },
+  { value: "Bac+2", label: "Bac+2" },
+  { value: "Bac+3", label: "Bac+3" },
+  { value: "Bac+5", label: "Bac+5" },
+  { value: "Plus", label: "Plus" },
+];
+
+export const ACADEMIC_FILIERES = [
+  { value: "Informatique", label: "Informatique" },
+  { value: "Électronique", label: "Électronique" },
+  { value: "Mathématiques", label: "Mathématiques" },
+  { value: "Gestion", label: "Gestion" },
+  { value: "Autres", label: "Autres" },
 ];
 
 export const EXPERIENCE_LEVELS = [
-  { value: "Aucune", label: "Aucune" },
-  { value: "Moins d'un an", label: "Moins d'un an" },
-  { value: "1-2 ans", label: "1-2 ans" },
-  { value: "2-5 ans", label: "2-5 ans" },
-  { value: "Plus de 5 ans", label: "Plus de 5 ans" },
+  { value: "1-3 mois", label: "1-3 mois" },
+  { value: "4-6 mois", label: "4-6 mois" },
+  { value: "6-12 mois", label: "6-12 mois" },
+  { value: "+12 mois", label: "+12 mois" },
 ];
 
-export const MOTIVATION_LEVELS = [
-  { value: "Très motivé(e)", label: "Très motivé(e)" },
-  { value: "Motivé(e)", label: "Motivé(e)" },
-  { value: "Peu motivé(e)", label: "Peu motivé(e)" },
-  { value: "Pas du tout motivé(e)", label: "Pas du tout motivé(e)" },
-];
 
 export const INTEREST_ITEMS = [
   { id: "technologie", label: "Technologie" },
@@ -173,22 +199,25 @@ export const INTEREST_ITEMS = [
   { id: "voyages", label: "Voyages" },
 ];
 
-export const COMPETENCES_ITEMS = [
-    { id: "developpement_web", label: "Développement Web" },
-    { id: "developpement_mobile", label: "Développement Mobile" },
-    { id: "gestion_projet", label: "Gestion de Projet" },
-    { id: "gestion_base_donnees", label: "Gestion de Base de Données" },
-    { id: "analyse_donnees", label: "Analyse de Données" },
-    { id: "intelligence_artificielle", label: "Intelligence Artificielle" },
-];
+export const FORMATIONS = {
+  "Développement Web": [
+    { value: "Frontend", label: "Frontend" },
+    { value: "Backend", label: "Backend" },
+    { value: "Fullstack", label: "Fullstack" },
+  ],
+  "Data & IA": [
+    { value: "Data Science", label: "Data Science" },
+    { value: "Machine Learning", label: "Machine Learning" },
+    { value: "Analyse de données", label: "Analyse de données" },
+  ],
+};
 
-export const LANGUES = [
-    { value: "Arabe", label: "Arabe" },
-    { value: "Amazigh", label: "Amazigh" },
-    { value: "Français", label: "Français" },
-    { value: "Anglais", label: "Anglais" },
-    { value: "Espagnol", label: "Espagnol" },
-    { value: "Allemand", label: "Allemand" },
+export const HOW_DID_YOU_HEAR_ABOUT_US_OPTIONS = [
+  { value: "Réseaux sociaux", label: "Réseaux sociaux" },
+  { value: "Site web", label: "Site web" },
+  { value: "Ami/Collègue", label: "Ami/Collègue" },
+  { value: "École/Université", label: "École/Université" },
+  { value: "Autre", label: "Autre" },
 ];
 
 export const HOW_YOU_KNOW_ITEMS = [

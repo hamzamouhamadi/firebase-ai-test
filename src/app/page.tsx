@@ -15,10 +15,13 @@ import { StepIndicator } from '@/components/formflow/StepIndicator';
 import { Step1PersonalDetails } from '@/components/formflow/Step1PersonalDetails';
 import { Step2AcademicInfo } from '@/components/formflow/Step2AcademicInfo';
 import { Step3AdditionalInfo } from '@/components/formflow/Step3AdditionalInfo';
+import { Step4TrainingPreferences } from '@/components/formflow/Step4TrainingPreferences';
 import { FormNavigation } from '@/components/formflow/FormNavigation';
 import { SubmissionModal } from '@/components/formflow/SubmissionModal';
 
 import { formSchema, STEPS_VALIDATION_FIELDS, type FormData } from '@/lib/schemas/formSchema';
+import { ReCAPTCHA } from '@/components/ui/recaptcha';
+
 
 const STEP_TITLES = ["Informations Personnelles", "Parcours Académique", "Informations Complémentaires"];
 
@@ -40,12 +43,20 @@ export default function HomePage() {
       genre: "",
       email: "",
       telephone: "",
-      ville: "",
-      region: "",
+        ville: "",
+        region: "",
       branche_bac: "",
       niveau_academique: "",
-      filiere: "",
-      has_prior_experience_q1: false,
+        filiere_academique: "",
+        has_professional_experience: "non",
+        months_of_experience: undefined,
+        objectif: undefined,
+        situation_actuelle: undefined,
+        has_powerful_laptop: undefined,
+        has_it_knowledge: "non",
+        it_knowledge: [],
+        training_preference: undefined,
+        how_did_you_hear: [],
       experience: "",
       motivation_level: "",
       is_available_q2: false,
@@ -133,12 +144,23 @@ export default function HomePage() {
     switch (currentStep) {
       case 0:
         return <Step1PersonalDetails form={form} />;
-      case 1:
-        return <Step2AcademicInfo form={form} />;
-      case 2:
-        return <Step3AdditionalInfo form={form} />;
-      default:
-        return null;
+            case 1:
+                return <Step2AcademicInfo form={form} />;
+            case 2:
+                return <Step3AdditionalInfo form={form} />;
+            case 3:
+                return <Step4TrainingPreferences form={form} />;
+            case 4:
+                return <div className="flex flex-col items-center justify-center space-y-4">
+                  <p className="text-sm">Veuillez confirmer que vous n'êtes pas un robot.</p>
+                    <ReCAPTCHA />
+                    <Button type="submit" disabled={isSubmitting}>
+                      Soumettre ma candidature
+                    </Button>
+                </div>;
+
+            default:
+                return null;
     }
   };
 
@@ -153,15 +175,16 @@ export default function HomePage() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <div className="transition-all duration-300 ease-in-out">
-                {renderStepContent()}
+                                {renderStepContent()}
               </div>
-              <FormNavigation
-                currentStep={currentStep}
-                totalSteps={STEP_TITLES.length}
-                onNext={handleNextStep}
-                onPrev={handlePrevStep}
-                isSubmitting={isSubmitting || form.formState.isSubmitting}
-              />
+              {currentStep !=4 ? (
+                <FormNavigation
+                  currentStep={currentStep}
+                  totalSteps={5}
+                  onNext={handleNextStep}
+                  onPrev={handlePrevStep}
+                  isSubmitting={isSubmitting || form.formState.isSubmitting}
+                />):null}
             </form>
           </Form>
         </CardContent>
