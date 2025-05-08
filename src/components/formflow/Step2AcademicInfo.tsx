@@ -2,14 +2,16 @@
 
 import type { UseFormReturn } from 'react-hook-form';
 import { Briefcase, BookOpen, GraduationCap, HelpCircle } from 'lucide-react';
-import { Switch } from "@/components/ui/switch";
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { FormData } from '@/lib/schemas/formSchema';
 import { BAC_BRANCHES, ACADEMIC_LEVELS, EXPERIENCE_LEVELS, ACADEMIC_FIELDS } from '@/lib/schemas/formSchema';
 
 interface Step2Props {
+
+  
+
   form: UseFormReturn<FormData>;
 }
 
@@ -92,27 +94,37 @@ export function Step2AcademicInfo({ form }: Step2Props) {
             )}
           />
       <FormField
-        control={form.control}
-        name="experience_professionnelle"
-        render={({ field }) => (
-          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm bg-card">
-            <div className="space-y-0.5">
-              <FormLabel className="text-base flex items-center">
-                <HelpCircle className="mr-2 h-4 w-4 text-primary" />
-                Avez-vous une expérience professionnelle antérieure ?
-              </FormLabel>
-            </div>
-            <FormControl>      
-              <Switch
-                checked={field.value}
-                onCheckedChange={field.onChange}
-              />
-            </FormControl>
+         control={form.control}
+         name="has_professional_experience"
+         render={({ field }) => (
+           <FormItem className="space-y-3">
+             <FormLabel className="flex items-center"><HelpCircle className="mr-2 h-4 w-4 text-primary" />Avez-vous une expérience professionnelle ?</FormLabel>
+             <FormControl>
+               <RadioGroup
+                 onValueChange={field.onChange}
+                 defaultValue={field.value}
+                 className="flex flex-col space-y-1"
+               >
+                 <FormItem className="flex items-center space-x-3 space-y-0">
+                   <FormControl>
+                     <RadioGroupItem value="Oui" />
+                   </FormControl>
+                   <FormLabel className="font-normal">Oui</FormLabel>
+                 </FormItem>
+                 <FormItem className="flex items-center space-x-3 space-y-0">
+                   <FormControl>
+                     <RadioGroupItem value="Non" />
+                   </FormControl>
+                   <FormLabel className="font-normal">Non</FormLabel>
+                 </FormItem>
+               </RadioGroup>
+             </FormControl>
+             <FormMessage />
           </FormItem>
         )}
       />
 
-      {watchHasPriorExperience && watchHasPriorExperience === true &&(
+      {form.watch("has_professional_experience") === "Oui" && (
         <FormField
           control={form.control}
           name="experience_mois"
@@ -127,7 +139,7 @@ export function Step2AcademicInfo({ form }: Step2Props) {
                 </FormControl>
                 <SelectContent>
                   {EXPERIENCE_LEVELS.map((level) => (
-                    <SelectItem key={level.value} value={level.value}>
+                    <SelectItem key={level.value} value={level.value} >
                       {level.label}
                     </SelectItem>
                   ))}

@@ -6,7 +6,7 @@ import { fr } from 'date-fns/locale';
 import { CalendarIcon, UserCircle2, Mail, Phone, MapPin, Building, Hash } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import { Calendar } from "@/components/ui/calendar";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import type { FormData } from '@/lib/schemas/formSchema';
 import { GENDERS, CITIES, REGIONS } from '@/lib/schemas/formSchema';
+
 
 interface Step1Props {
   form: UseFormReturn<FormData>;
@@ -188,7 +189,7 @@ export function Step1PersonalDetails({ form }: Step1Props) {
           )}
         />
       </div>
-       <FormField
+        <FormField
         control={form.control}
         name="region"
         render={({ field }) => (
@@ -212,6 +213,7 @@ export function Step1PersonalDetails({ form }: Step1Props) {
           </FormItem>
         )}
       />
+
     </div>
   );
 }
